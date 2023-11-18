@@ -1,4 +1,4 @@
-name: CI 
+name: x64 Linux Build 
 on: [push, workflow_dispatch] 
   
 jobs: 
