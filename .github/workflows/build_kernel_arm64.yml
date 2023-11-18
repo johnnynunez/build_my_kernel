@@ -1,0 +1,59 @@
+name: CI 
+on: [push, workflow_dispatch] 
+  
+jobs: 
+  build: 
+    runs-on: [ubuntu-22-04, arm64, heavy, self-hosted] 
+    container: custom-linux-builder-jammy:latest 
+    steps: 
+      - uses: actions/checkout@v4 
+  
+      - name: Cleanup 
+        run: | 
+          debian/rules clean 
+          rm -rf ../*.deb /packages 
+  
+      - name: Dependencies 
+        run: | 
+          apt-get update && \ 
+          mk-build-deps \ 
+            --tool 'apt-get -o Debug::pkgProblemResolver=yes 
+            --no-install-recommends --yes' \ 
+            --install --remove debian/control 
+  
+      - name: Build 
+        run: | 
+          debian/rules do_tools=true binary-generic binary 
+          mkdir /packages && cp -f ../*deb /packages/. 
+  
+      - uses: actions/upload-artifact@v3 
+        with: 
+          name: linux_package 
+          path: /packages/ 
+  
+  publish: 
+    runs-on: [self-hosted, ubuntu-22-04] 
+    needs: [build] 
+    steps: 
+      - name: Get Secrets 
+        uses: hashicorp/vault-action@v2.7.4
+        id: secrets 
+        with: 
+          url: <VAULT_INSTANCE_URL> 
+          token: ${{ secrets.VAULT_TOKEN }} 
+          secrets: | 
+            <PATH_TO_PRIVATE_KEY>| key ; 
+  
+      - uses: actions/download-artifact@v3 
+        with: 
+          name: linux_package 
+  
+      - name: Send to Repo 
+        uses: appleboy/scp-action@master 
+        with: 
+          host: <REPOSITORY_URL> 
+          username: <REPOSITORY_USERNAME> 
+          key: ${{ steps.secrets.outputs.key }} 
+          port: <PORT_NUMBER> 
+          source: "*.deb" 
+          target: <PATH_IN_REPOSITORY>

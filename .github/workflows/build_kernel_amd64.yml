@@ -6,7 +6,7 @@ jobs:
     runs-on: [ubuntu-22-04, x64, heavy, self-hosted] 
     container: custom-linux-builder-jammy:latest 
     steps: 
-      - uses: actions/checkout@v3 
+      - uses: actions/checkout@v4 
   
       - name: Cleanup 
         run: | 
@@ -36,7 +36,7 @@ jobs:
     needs: [build] 
     steps: 
       - name: Get Secrets 
-        uses: hashicorp/vault-action@v2.4.1 
+        uses: hashicorp/vault-action@v2.7.4 
         id: secrets 
         with: 
           url: <VAULT_INSTANCE_URL> 
