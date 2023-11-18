@@ -1,4 +1,4 @@
-Name: CI 
+name: CI 
 on: [push, workflow_dispatch] 
   
 jobs: 
@@ -18,7 +18,7 @@ jobs:
           apt-get update && \ 
           mk-build-deps \ 
             --tool 'apt-get -o Debug::pkgProblemResolver=yes 
---no-install-recommends --yes' \ 
+            --no-install-recommends --yes' \ 
             --install --remove debian/control 
   
       - name: Build 
